@@ -1,48 +1,89 @@
 import sqlite3
-import os
+from pathlib import Path
 
-DB_PATH = os.path.join('db', 'docathon.db')
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = BASE_DIR / 'db' / 'docathon.db'
+
+
+def column_names(cursor, table_name):
+    cursor.execute(f'PRAGMA table_info("{table_name}")')
+    return {row[1] for row in cursor.fetchall()}
+
+
+def table_exists(cursor, table_name):
+    cursor.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+        (table_name,),
+    )
+    return cursor.fetchone() is not None
+
 
 def apply_migration():
-    """Applies the non-destructive migration for the live scoring feature."""
-    print(f"Connecting to database at: {DB_PATH}")
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = None
     try:
         conn = sqlite3.connect(DB_PATH)
+        conn.execute('PRAGMA foreign_keys = ON')
+        conn.execute('BEGIN')
         cursor = conn.cursor()
-
-        print("Creating score_log table...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS score_log (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                match_id INTEGER NOT NULL,
-                team_id INTEGER NOT NULL,
-                points_scored INTEGER NOT NULL,
-                event_type TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (match_id) REFERENCES matches (id),
-                FOREIGN KEY (team_id) REFERENCES classes (id)
+        missing = [
+            table for table in ('classes', 'matches')
+            if not table_exists(cursor, table)
+        ]
+        if missing:
+            raise RuntimeError(
+                'Missing base table(s): ' + ', '.join(missing)
+                + '. Run setup_database.py or restore the base schema first.'
             )
-        """)
 
-        print("Updating matches table...")
-        # Add live_match_state column if it doesn't exist
-        cursor.execute("PRAGMA table_info(matches)")
-        columns = [col[1] for col in cursor.fetchall()]
-        if 'live_match_state' not in columns:
-            cursor.execute("ALTER TABLE matches ADD COLUMN live_match_state TEXT")
-            print("Added 'live_match_state' column to matches table.")
+        if not table_exists(cursor, 'score_log'):
+            cursor.execute('''
+                CREATE TABLE score_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    match_id INTEGER NOT NULL,
+                    team_id INTEGER NOT NULL,
+                    points_scored INTEGER NOT NULL DEFAULT 0,
+                    event_type TEXT NOT NULL,
+                    counts_as_ball INTEGER NOT NULL DEFAULT 0
+                        CHECK (counts_as_ball IN (0, 1)),
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (match_id) REFERENCES matches(id)
+                        ON UPDATE CASCADE ON DELETE CASCADE,
+                    FOREIGN KEY (team_id) REFERENCES classes(id)
+                        ON UPDATE CASCADE ON DELETE RESTRICT
+                )
+            ''')
         else:
-            print("'live_match_state' column already exists.")
+            columns = column_names(cursor, 'score_log')
+            if 'counts_as_ball' not in columns:
+                cursor.execute(
+                    'ALTER TABLE score_log ADD COLUMN counts_as_ball '
+                    'INTEGER NOT NULL DEFAULT 0 CHECK (counts_as_ball IN (0, 1))'
+                )
+            if 'points_scored' not in columns:
+                cursor.execute(
+                    'ALTER TABLE score_log ADD COLUMN points_scored '
+                    'INTEGER NOT NULL DEFAULT 0'
+                )
 
+        if 'live_match_state' not in column_names(cursor, 'matches'):
+            cursor.execute('ALTER TABLE matches ADD COLUMN live_match_state TEXT')
+
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_score_log_match_id ON score_log(match_id)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_score_log_team_id ON score_log(team_id)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_score_log_created_at ON score_log(created_at)')
         conn.commit()
-        print("\nMigration applied successfully!")
-
-    except sqlite3.Error as e:
-        print(f"An error occurred: {e}")
+        print('Migration 001 applied successfully.')
+        return True
+    except (sqlite3.Error, OSError, RuntimeError) as exc:
+        if conn is not None:
+            conn.rollback()
+        print(f'Migration 001 failed: {exc}')
+        return False
     finally:
-        if conn:
+        if conn is not None:
             conn.close()
-            print("Database connection closed.")
+
 
 if __name__ == '__main__':
-    apply_migration()
+    raise SystemExit(0 if apply_migration() else 1)

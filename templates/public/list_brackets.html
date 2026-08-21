@@ -8,7 +8,7 @@
 
 <div class="list-group">
     {% for sport in sports %}
-        <a href="{{ url_for('view_bracket', sport_id=sport.id) }}" class="list-group-item list-group-item-action bg-dark text-white border-secondary mb-3 rounded-3">
+        <a href="{{ url_for('view_bracket', sport_id=sport.id) }}" class="list-group-item list-group-item-action border-secondary mb-3 rounded-3">
             <h5 class="mb-1">{{ sport.name }}</h5>
         </a>
     {% else %}

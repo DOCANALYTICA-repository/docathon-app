@@ -1,36 +1,43 @@
 import sqlite3
-import os
+from pathlib import Path
 
-DB_PATH = os.path.join('db', 'docathon.db')
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = BASE_DIR / 'db' / 'docathon.db'
+
 
 def apply_migration():
-    """Adds the 'stories' table to the database."""
-    print(f"Connecting to database at: {DB_PATH}")
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = None
     try:
         conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-
-        print("Creating 'stories' table...")
-        cursor.execute("""
+        conn.execute('PRAGMA foreign_keys = ON')
+        conn.execute('BEGIN')
+        conn.execute('''
             CREATE TABLE IF NOT EXISTS stories (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
                 content TEXT NOT NULL,
                 author TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                image_filename TEXT,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
-        """)
-        print("'stories' table created or already exists.")
-
+        ''')
+        columns = {row[1] for row in conn.execute('PRAGMA table_info(stories)')}
+        if 'image_filename' not in columns:
+            conn.execute('ALTER TABLE stories ADD COLUMN image_filename TEXT')
+        conn.execute('CREATE INDEX IF NOT EXISTS idx_stories_created_at ON stories(created_at)')
         conn.commit()
-        print("\nMigration applied successfully!")
-
-    except sqlite3.Error as e:
-        print(f"An error occurred: {e}")
+        print('Migration 004 applied successfully.')
+        return True
+    except (sqlite3.Error, OSError) as exc:
+        if conn is not None:
+            conn.rollback()
+        print(f'Migration 004 failed: {exc}')
+        return False
     finally:
-        if conn:
+        if conn is not None:
             conn.close()
-            print("Database connection closed.")
+
 
 if __name__ == '__main__':
-    apply_migration()
+    raise SystemExit(0 if apply_migration() else 1)

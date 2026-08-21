@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="text-center mb-5">
-    <a href="{{ url_for('leaderboard') }}">&larr; Back to Leaderboard</a>
+    <a href="{{ url_for('leaderboard') }}" class="outline-button mb-3">&larr;&nbsp; Back to Leaderboard</a>
     <h1 class="display-5 fw-bold docathon-brand">Points Log</h1>
     <p class="lead text-muted">{{ class_name }}</p>
 </div>
@@ -12,12 +12,12 @@
         <h4>Tournament Points</h4>
         <ul class="list-group">
             {% for event in tournament_events %}
-            <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center">
+            <li class="list-group-item border-secondary d-flex justify-content-between align-items-center">
                 <span>{{ event.outcome }} {{ event.round_type|replace('_', ' ')|title }} in {{ event.sport_name }}</span>
                 <span class="badge bg-success rounded-pill">+{{ event.points }}</span>
             </li>
             {% else %}
-            <li class="list-group-item bg-dark text-white border-secondary">No tournament points yet.</li>
+            <li class="list-group-item border-secondary">No tournament points yet.</li>
             {% endfor %}
         </ul>
     </div>
@@ -26,12 +26,12 @@
         <h4>Win Points</h4>
         <ul class="list-group">
             {% for event in win_points_events %}
-            <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center">
+            <li class="list-group-item border-secondary d-flex justify-content-between align-items-center">
                 <span>Won {{ event.sport_name }} vs {{ event.opponent_name }}</span>
                 <span class="badge bg-success rounded-pill">+1</span>
             </li>
             {% else %}
-            <li class="list-group-item bg-dark text-white border-secondary">No regular win points yet.</li>
+            <li class="list-group-item border-secondary">No regular win points yet.</li>
             {% endfor %}
         </ul>
     </div>
@@ -40,12 +40,12 @@
         <h4>Participation Points</h4>
         <ul class="list-group">
             {% for event in participation_events %}
-            <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center">
+            <li class="list-group-item border-secondary d-flex justify-content-between align-items-center">
                 <span>Participated in {{ event.sport_name }}</span>
                 <span class="badge bg-success rounded-pill">+1</span>
             </li>
             {% else %}
-            <li class="list-group-item bg-dark text-white border-secondary">No participation points yet.</li>
+            <li class="list-group-item border-secondary">No participation points yet.</li>
             {% endfor %}
         </ul>
     </div>
@@ -54,7 +54,7 @@
         <h4>Bonuses & Penalties</h4>
         <ul class="list-group">
             {% for adj in adjustments %}
-            <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center">
+            <li class="list-group-item border-secondary d-flex justify-content-between align-items-center">
                 <span>{{ adj.reason }}</span>
                 {% if adj.points > 0 %}
                     <span class="badge bg-success rounded-pill">+{{ adj.points }}</span>
@@ -63,7 +63,7 @@
                 {% endif %}
             </li>
             {% else %}
-            <li class="list-group-item bg-dark text-white border-secondary">No adjustments recorded.</li>
+            <li class="list-group-item border-secondary">No adjustments recorded.</li>
             {% endfor %}
         </ul>
     </div>

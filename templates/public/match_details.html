@@ -2,12 +2,12 @@
 
 {% block content %}
 <div class="text-center mb-4">
-    <a href="{{ url_for('matches') }}">&larr; Back to Full Schedule</a>
+    <a href="{{ url_for('matches') }}" class="outline-button mb-3">&larr;&nbsp; Back to Full Schedule</a>
     <h1 class="display-5">{{ match.sport_name }}</h1>
     <p class="lead text-muted">{{ match.round_name }}</p>
 </div>
 
-<div class="card bg-dark border-secondary mb-4">
+<div class="card border-secondary mb-4">
     <div class="card-body p-4">
         <div class="row align-items-center text-center">
             <div class="col-5">
@@ -62,7 +62,7 @@
     {% for event in score_log %}
     {# Check if the event_type is a standard scoring play #}
     {% set is_standard_event = event.event_type in ['Run', 'Runs', 'Boundary', 'Wicket', 'Wide', 'No-Ball', 'Dot Ball', 'Run Out'] %}
-    <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+    <li class="list-group-item border-secondary d-flex justify-content-between">
         <span class="{{ 'fw-bold' if not is_standard_event }}">
             <span class="fw-bold">{{ event.team_name }}</span> - {{ event.event_type }}
         </span>

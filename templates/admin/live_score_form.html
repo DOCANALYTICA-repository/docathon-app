@@ -8,13 +8,13 @@
     .set-table { max-width: 400px; margin: 20px auto; }
 </style>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 admin-toolbar">
     <div>
-        <a href="{{ url_for('list_matches') }}">&larr; Back to All Matches</a>
+        <a href="{{ url_for('list_matches') }}" class="outline-button mb-3">&larr;&nbsp; Back to All Matches</a>
         <h1 class="display-5">{{ match.sport_name }}</h1>
         <p class="lead text-muted">{{ match.round_name }}</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 live-score-actions">
         <form action="{{ url_for('undo_last_event', match_id=match.id) }}" method="POST">
             <button type="submit" class="btn btn-lg btn-secondary">Undo Last Event</button>
         </form>
@@ -26,7 +26,7 @@
 
 {# POINT-BASED SCORING INTERFACE (Cricket, Basketball, etc.) #}
 {% if score_format == 'points' %}
-<div class="card bg-dark border-secondary">
+<div class="card border-secondary">
     <div class="card-body p-4">
         <div class="row align-items-center text-center">
             <div class="col-5">
@@ -85,7 +85,7 @@
 
 {# DETAILED SET-BASED SCORING INTERFACE (Volleyball, Throwball) #}
 {% elif score_format == 'sets_detailed' %}
-<div class="card bg-dark border-secondary">
+<div class="card border-secondary">
     <div class="card-body p-4 text-center">
         <div class="row align-items-center">
             <div class="col-5">
@@ -120,7 +120,8 @@
              <button type="submit" class="btn btn-info">Finalize Current Set</button>
         </form>
         {% if scores.completed_sets %}
-        <table class="table table-dark table-bordered set-table mt-4">
+        <div class="data-table-wrap reveal mt-4">
+        <table class="table table-bordered set-table">
             <thead><tr><th>Set</th><th>{{ match.class1_name }}</th><th>{{ match.class2_name }}</th></tr></thead>
             <tbody>
                 {% for set_score in scores.completed_sets %}
@@ -128,19 +129,21 @@
                 {% endfor %}
             </tbody>
         </table>
+        </div>
         {% endif %}
     </div>
 </div>
 {% endif %}
 
 
-<div class="card bg-dark border-secondary mt-4">
+<div class="card border-secondary mt-4">
     <div class="card-body">
         <h5 class="card-title">Log a Manual Event</h5>
         <form action="{{ url_for('log_manual_event', match_id=match.id) }}" method="POST">
             <div class="row g-2">
                 <div class="col-md-4">
-                    <select name="team_id" class="form-select" required>
+                    <label class="visually-hidden" for="manual-event-team">Team</label>
+                    <select name="team_id" id="manual-event-team" class="form-select" required>
                         <option value="" disabled selected>-- Select Team --</option>
                         <option value="{{ match.class1_id }}">{{ match.class1_name }}</option>
                         <option value="{{ match.class2_id }}">{{ match.class2_name }}</option>

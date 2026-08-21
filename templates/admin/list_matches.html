@@ -2,16 +2,16 @@
 {% set page_title = "Manage Matches" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 admin-toolbar">
     <h1>Manage Matches</h1>
     <a href="{{ url_for('create_match') }}" class="btn btn-warning">
         Create New Match
     </a>
 </div>
 
-<div class="table-responsive">
+<div class="admin-table-wrap reveal">
     <table class="table table-hover align-middle">
-        <thead class="table-dark">
+        <thead>
             <tr>
                 <th>Sport</th>
                 <th>Teams</th>
@@ -24,10 +24,10 @@
         <tbody>
             {% for match in matches %}
             <tr>
-                <td>{{ match.sport_name }}</td>
-                <td>{{ match.class1_name }} vs {{ match.class2_name }}</td>
-                <td>{{ match.result_details or '-' }}</td>
-                <td>
+                <td data-label="Sport">{{ match.sport_name }}</td>
+                <td data-label="Teams">{{ match.class1_name }} vs {{ match.class2_name }}</td>
+                <td data-label="Result">{{ match.result_details or '-' }}</td>
+                <td data-label="Status">
                     {% if match.status == 'COMPLETED' %}
                         <span class="badge text-bg-secondary">Completed</span>
                     {% elif match.status == 'LIVE' %}
@@ -36,10 +36,10 @@
                         <span class="badge text-bg-info">Upcoming</span>
                     {% endif %}
                 </td>
-                <td>{{ match.match_time | replace('T', ' ') }}</td>
-                <td>
-                    <a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn btn-sm btn-outline-light">Edit</a>
-                    
+                <td data-label="Time">{{ match.match_time | replace('T', ' ') }}</td>
+                <td data-label="Actions">
+                    <a href="{{ url_for('edit_match', match_id=match.id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+
                     {% if match.status == 'LIVE' %}
                     <a href="{{ url_for('live_score_editor', match_id=match.id) }}" class="btn btn-sm btn-danger">Live Score</a>
                     {% endif %}
