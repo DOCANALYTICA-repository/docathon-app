@@ -6,7 +6,7 @@
     <p class="lead text-muted">Follow all the action, from upcoming games to live results.</p>
 </div>
 
-<div class="card bg-dark border-secondary mb-4">
+<div class="card border-secondary mb-4">
     <div class="card-body">
         <form method="GET" action="{{ url_for('matches') }}">
             <div class="row g-2 align-items-end">
@@ -41,7 +41,7 @@
 
 <div class="list-group">
     {% for match in all_matches %}
-    <a href="{{ url_for('match_details', match_id=match.id) }}" class="list-group-item list-group-item-action bg-dark text-white border-secondary mb-3 rounded-3 text-decoration-none">
+    <a href="{{ url_for('match_details', match_id=match.id) }}" class="list-group-item list-group-item-action border-secondary mb-3 rounded-3 text-decoration-none">
         <div class="d-flex w-100 justify-content-between align-items-center">
             <div>
                 <h5 class="mb-1">{{ match.sport_name }}</h5>

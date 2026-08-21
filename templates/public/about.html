@@ -31,7 +31,7 @@
 
         <h3 class="mt-5 border-bottom pb-2">Our Theme</h3>
         <div>
-            <h4><center><strong>MAIN THEME: MENTAL HEALTH AWARENESS</strong></center></h4>
+            <h4 class="text-center"><strong>MAIN THEME: MENTAL HEALTH AWARENESS</strong></h4>
             <strong>Sport-wise Themes</strong>
             <ul>
                 <li>Cricket → Depression & Anxiety</li>
@@ -55,11 +55,11 @@
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mt-4">
     {% for member in members %}
     <div class="col text-center">
-        <div class="card h-100 bg-dark">
+        <div class="card h-100">
             {% if member.photo_filename %}
-                <img src="{{ url_for('static', filename='uploads/' + member.photo_filename) }}" class="card-img-top" alt="{{ member.name }}" style="height: 250px; object-fit: cover;">
+                <img src="{{ url_for('static', filename='uploads/' + member.photo_filename) }}" class="card-img-top" alt="{{ member.name }}" width="250" height="250" loading="lazy" style="height: 250px; object-fit: cover;">
             {% else %}
-                <img src="https://via.placeholder.com/250" class="card-img-top" alt="Placeholder">
+                <img src="https://via.placeholder.com/250" class="card-img-top" alt="Placeholder" width="250" height="250" loading="lazy">
             {% endif %}
             <div class="card-body">
                 <h5 class="card-title">{{ member.name }}</h5>

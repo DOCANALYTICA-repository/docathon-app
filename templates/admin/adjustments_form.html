@@ -42,9 +42,9 @@
     </div>
     <div class="col-md-7">
         <h4 class="mb-3">Adjustment Log</h4>
-        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+        <div class="admin-table-wrap reveal" style="max-height: 500px; overflow-y: auto;">
             <table class="table table-sm">
-                <thead class="table-dark sticky-top">
+                <thead class="sticky-top">
                     <tr>
                         <th>Class</th>
                         <th>Points</th>
@@ -54,16 +54,16 @@
                 <tbody>
                     {% for adj in adjustments %}
                     <tr>
-                        <td>{{ adj.class_name }}</td>
-                        <td>
+                        <td data-label="Class">{{ adj.class_name }}</td>
+                        <td data-label="Points">
                             {% if adj.points > 0 %}
                                 <span class="badge text-bg-success">+{{ adj.points }}</span>
                             {% else %}
                                 <span class="badge text-bg-danger">{{ adj.points }}</span>
                             {% endif %}
                         </td>
-                        <td>{{ adj.reason }}</td>
-                        <td>
+                        <td data-label="Reason">{{ adj.reason }}</td>
+                        <td data-label="Action">
                             <form action="{{ url_for('delete_adjustment', adjustment_id=adj.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this entry?');">
                                 <button type="submit" class="btn btn-xs btn-outline-danger">Delete</button>
                             </form>

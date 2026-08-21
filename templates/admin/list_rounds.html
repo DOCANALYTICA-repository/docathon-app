@@ -2,14 +2,14 @@
 {% set page_title = "Manage Rounds" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 admin-toolbar">
     <h1>Manage Rounds</h1>
     <a href="{{ url_for('create_round') }}" class="btn btn-warning">Create New Round</a>
 </div>
 
-<div class="table-responsive">
+<div class="admin-table-wrap reveal">
     <table class="table table-hover">
-        <thead class="table-dark">
+        <thead>
             <tr>
                 <th>Sport</th>
                 <th>Round Name</th>
@@ -20,11 +20,11 @@
         <tbody>
             {% for round in rounds %}
             <tr>
-                <td>{{ round.sport_name }}</td>
-                <td>{{ round.name }}</td>
-                <td><span class="badge bg-secondary">{{ round.round_type }}</span></td>
-                <td>
-                    <a href="{{ url_for('edit_round', round_id=round.id) }}" class="btn btn-sm btn-outline-light">Edit</a>
+                <td data-label="Sport">{{ round.sport_name }}</td>
+                <td data-label="Round Name">{{ round.name }}</td>
+                <td data-label="Round Type"><span class="badge bg-secondary">{{ round.round_type }}</span></td>
+                <td data-label="Actions">
+                    <a href="{{ url_for('edit_round', round_id=round.id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
                 </td>
             </tr>
             {% else %}

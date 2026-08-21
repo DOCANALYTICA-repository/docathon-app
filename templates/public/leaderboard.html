@@ -6,9 +6,9 @@
     <p class="lead text-muted">Standings are updated in real-time as match results are finalized.</p>
 </div>
 
-<div class="table-responsive">
+<div class="data-table-wrap reveal">
     <table class="table table-hover align-middle">
-        <thead class="table-dark">
+        <thead>
             <tr>
                 <th style="width: 10%;">Rank</th>
                 <th>Class Name</th>
@@ -23,7 +23,7 @@
             <tr>
                 <td class="fw-bold h5">#{{ loop.index }}</td>
                 <td class="fw-semibold">
-                    <a href="{{ url_for('class_points_log', class_id=row.class_id) }}" class="text-white text-decoration-none">
+                    <a href="{{ url_for('class_points_log', class_id=row.class_id) }}" class="text-decoration-none">
                         {{ row.class_name }}
                     </a>
                 </td>

@@ -4,3 +4,6 @@ db/docathon.db
 # Python cache files
 __pycache__/
 *.pyc
+
+# OS files
+.DS_Store

@@ -9,9 +9,9 @@
 <div class="row row-cols-1 row-cols-md-2 g-4">
     {% for story in stories %}
     <div class="col">
-        <div class="card h-100 bg-dark border-secondary">
+        <div class="card h-100 border-secondary">
             {% if story.image_filename %}
-                <img src="{{ url_for('static', filename='uploads/' + story.image_filename) }}" class="card-img-top" alt="{{ story.title }}">
+                <img src="{{ url_for('static', filename='uploads/' + story.image_filename) }}" class="card-img-top" alt="{{ story.title }}" loading="lazy">
             {% endif %}
             <div class="card-body">
                 <h5 class="card-title">{{ story.title }}</h5>

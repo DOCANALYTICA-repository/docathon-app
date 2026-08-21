@@ -1,62 +1,807 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="p-5 mb-4 bg-body-tertiary rounded-3 text-center">
-    <div class="container-fluid py-5">
-        <h1 class="display-5 fw-bold docathon-brand">Welcome to Docathon</h1>
-        <p class="fs-4">The official hub for all event schedules, live scores, and class leaderboards.</p>
-        <a href="{{ url_for('leaderboard') }}" class="btn btn-warning btn-lg">View Full Leaderboard</a>
-        <a href="{{ url_for('matches') }}" class="btn btn-outline-light btn-lg">See All Matches</a>
-    </div>
-</div>
 
-<div class="row g-5">
-    <div class="col-md-7">
-        <h2 class="pb-2 border-bottom">Today's Matches</h2>
-        {% if todays_matches %}
-            {% for match in todays_matches %}
-            <a href="{{ url_for('match_details', match_id=match.id) }}" class="text-decoration-none">
-                <div class="card bg-dark border-secondary mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <small class="text-muted">{{ match.sport_name }}</small>
-                            {% if match.status == 'LIVE' %}
-                                <span class="badge text-bg-danger">LIVE</span>
-                            {% elif match.status == 'COMPLETED' %}
-                                 <span class="badge text-bg-secondary">Finished</span>
-                            {% endif %}
-                        </div>
-                        <h5 class="card-title">{{ match.class1_name }} vs {{ match.class2_name }}</h5>
-                        {% if match.status == 'COMPLETED' or match.status == 'LIVE' %}
-                            <p class="card-text fw-bold text-warning">{{ match.result_details }}</p>
-                        {% else %}
-                            <p class="card-text text-info">Scheduled for {{ match.match_time.split('T')[1] }}</p>
-                        {% endif %}
-                    </div>
+<style>
+:root {
+    --dark-bg: #090909;
+    --dark-card: #151515;
+    --light-bg: #f7f3e8;
+    --light-card: #ffffff;
+    --dark-text: #f5f5f5;
+    --light-text: #171717;
+    --muted: #777;
+    --border: rgba(201,150,44,.22);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    transition: background .35s ease, color .35s ease;
+}
+
+/* =========================
+   FULL PAGE THEME
+========================= */
+
+html[data-theme="dark"] body {
+    background: var(--dark-bg) !important;
+    color: var(--dark-text) !important;
+}
+
+html[data-theme="light"] body {
+    background: var(--light-bg) !important;
+    color: var(--light-text) !important;
+}
+
+html[data-theme="dark"] main {
+    background: var(--dark-bg) !important;
+}
+
+html[data-theme="light"] main {
+    background: var(--light-bg) !important;
+}
+
+.doc-home.reveal {
+    min-height: 100vh;
+    padding-bottom: 70px;
+}
+
+/* =========================
+   BRAND AREA
+========================= */
+
+.doc-brandbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 5%;
+    border-bottom: 1px solid var(--border);
+    transition: .35s ease;
+}
+
+html[data-theme="dark"] .doc-brandbar {
+    background: #080808;
+}
+
+html[data-theme="light"] .doc-brandbar {
+    background: rgba(255,255,255,.9);
+}
+
+.doc-brand-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.doc-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    display: block;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.doc-brand-name {
+    font-size: 23px;
+    font-weight: 800;
+}
+
+.doc-brand-sub {
+    font-size: 11px;
+    opacity: .55;
+    margin-top: 3px;
+}
+
+/* WROGN — ONLY ONCE */
+
+.doc-sponsor {
+    display: flex;
+    align-items: flex-end;
+    gap: 7px;
+}
+
+.doc-sponsor small {
+    font-size: 8px;
+    opacity: .5;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-bottom: 5px;
+}
+
+.doc-sponsor strong {
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+/* =========================
+   THEME BUTTON
+========================= */
+
+.doc-theme-toggle {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 9999;
+
+    width: 50px;
+    height: 50px;
+
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+
+    background: var(--dark-card);
+    color: var(--gold-light);
+
+    cursor: pointer;
+    font-size: 20px;
+
+    transition: .25s ease;
+    box-shadow: 0 8px 25px rgba(0,0,0,.25);
+}
+
+.doc-theme-toggle:hover {
+    transform: translateY(-4px) rotate(10deg);
+}
+
+/* =========================
+   HERO
+========================= */
+
+.doc-hero {
+    max-width: 1200px;
+    margin: 55px auto 45px;
+    padding: 0 25px;
+    animation: reveal-in .6s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.doc-eyebrow {
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 13px;
+}
+
+.doc-hero h1 {
+    margin: 0;
+    font-size: clamp(2rem, 1rem + 5.5vw, 4.75rem);
+    line-height: .95;
+    letter-spacing: 0;
+    font-weight: 900;
+}
+
+.doc-hero h1 span {
+    color: var(--gold);
+}
+
+.doc-hero p {
+    max-width: 650px;
+    margin: 22px 0 0;
+    font-size: 17px;
+    line-height: 1.65;
+    opacity: .62;
+}
+
+.doc-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+}
+
+.doc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 13px 21px;
+    border-radius: 11px;
+    text-decoration: none;
+    font-weight: 800;
+    transition: .25s ease;
+}
+
+.doc-btn-gold {
+    background: var(--gold);
+    color: #111 !important;
+}
+
+.doc-btn-gold:hover {
+    background: var(--gold-light);
+    transform: translateY(-3px);
+}
+
+.doc-btn-outline {
+    border: 1px solid var(--border);
+    color: inherit !important;
+}
+
+.doc-btn-outline:hover {
+    border-color: var(--gold);
+    color: var(--gold) !important;
+    transform: translateY(-3px);
+}
+
+/* =========================
+   QUICK STATS
+========================= */
+
+.doc-stats {
+    max-width: 1200px;
+    margin: 0 auto 55px;
+    padding: 0 25px;
+
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 15px;
+}
+
+.doc-stat {
+    padding: 21px;
+    border-radius: 17px;
+    border: 1px solid var(--border);
+    transition: .25s ease;
+}
+
+html[data-theme="dark"] .doc-stat {
+    background: var(--dark-card);
+}
+
+html[data-theme="light"] .doc-stat {
+    background: var(--light-card);
+    box-shadow: 0 8px 25px rgba(0,0,0,.05);
+}
+
+.doc-stat:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold);
+}
+
+.doc-stat-number {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--gold);
+}
+
+.doc-stat-label {
+    font-size: 12px;
+    opacity: .55;
+}
+
+/* =========================
+   CONTENT
+========================= */
+
+.doc-content {
+    max-width: 1200px;
+    margin: auto;
+    padding: 0 25px;
+
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 25px;
+}
+
+.doc-section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 17px;
+}
+
+.doc-section-title h2 {
+    margin: 0;
+    font-size: 25px;
+    font-weight: 850;
+}
+
+.doc-section-title a {
+    color: var(--gold);
+    font-size: 12px;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+/* =========================
+   MATCHES
+========================= */
+
+.doc-match-card {
+    display: block;
+    color: inherit !important;
+    text-decoration: none;
+
+    padding: 20px;
+    margin-bottom: 13px;
+
+    border-radius: 18px;
+    border: 1px solid var(--border);
+
+    transition: .28s ease;
+}
+
+html[data-theme="dark"] .doc-match-card {
+    background: var(--dark-card);
+}
+
+html[data-theme="light"] .doc-match-card {
+    background: var(--light-card);
+    box-shadow: 0 8px 30px rgba(0,0,0,.05);
+}
+
+.doc-match-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold);
+    box-shadow: 0 15px 35px rgba(0,0,0,.12);
+}
+
+.doc-match-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 13px;
+}
+
+.doc-sport {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: .5;
+}
+
+.doc-status {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--gold);
+    background: rgba(201,162,39,.12);
+    padding: 5px 9px;
+    border-radius: 50px;
+}
+
+.doc-match-title {
+    font-size: 18px;
+    font-weight: 850;
+    margin-bottom: 7px;
+}
+
+.doc-match-info {
+    font-size: 12px;
+    opacity: .55;
+}
+
+.doc-empty {
+    padding: 42px 20px;
+    text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: 18px;
+    opacity: .6;
+}
+
+/* =========================
+   TOP CLASSES
+========================= */
+
+.doc-class-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    padding: 17px;
+    margin-bottom: 11px;
+
+    border-radius: 17px;
+    border: 1px solid var(--border);
+
+    transition: .25s ease;
+}
+
+html[data-theme="dark"] .doc-class-card {
+    background: var(--dark-card);
+}
+
+html[data-theme="light"] .doc-class-card {
+    background: var(--light-card);
+    box-shadow: 0 7px 25px rgba(0,0,0,.04);
+}
+
+.doc-class-card:hover {
+    transform: translateX(5px);
+    border-color: var(--gold);
+}
+
+.doc-rank {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+
+    background: rgba(201,162,39,.12);
+    color: var(--gold);
+
+    font-weight: 900;
+}
+
+.doc-class-name {
+    flex: 1;
+    font-weight: 800;
+}
+
+.doc-points {
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* =========================
+   ANIMATION
+========================= */
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 800px) {
+
+    .doc-content {
+        grid-template-columns: 1fr;
+    }
+
+    .doc-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .doc-brandbar {
+        padding: 16px 20px;
+    }
+
+    .doc-sponsor strong {
+        font-size: 21px;
+    }
+}
+
+@media (max-width: 520px) {
+
+    .doc-sponsor {
+        display: none;
+    }
+
+    .doc-brand-name {
+        font-size: 18px;
+    }
+
+    .doc-logo {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+@media (min-width: 900px) and (max-height: 850px) {
+    .page-content {
+        padding-top: 20px;
+    }
+
+    .doc-home {
+        padding-bottom: 28px;
+    }
+
+    .doc-brandbar {
+        padding-block: 8px;
+    }
+
+    .doc-brandbar .doc-logo {
+        width: 50px;
+        height: 50px;
+    }
+
+    .doc-hero {
+        margin-top: 22px;
+        margin-bottom: 22px;
+    }
+
+    .doc-hero p {
+        margin-top: 14px;
+        line-height: 1.45;
+    }
+
+    .doc-actions {
+        margin-top: 18px;
+    }
+
+    .doc-stats {
+        margin-bottom: 20px;
+    }
+
+    .doc-stat {
+        padding: 14px;
+    }
+
+    .doc-stat-number {
+        font-size: 23px;
+    }
+
+    .doc-content {
+        gap: 18px;
+    }
+
+    .doc-section-title {
+        margin-bottom: 10px;
+    }
+
+    .doc-section-title h2 {
+        font-size: 21px;
+    }
+
+    .doc-match-card {
+        padding: 13px;
+        margin-bottom: 8px;
+    }
+
+    .doc-class-card {
+        padding: 11px;
+        margin-bottom: 7px;
+    }
+}
+</style>
+
+
+<div class="doc-home reveal">
+
+    <!-- TOP BRANDING -->
+    <div class="doc-brandbar">
+
+        <div class="doc-brand-left">
+
+            <img
+                src="{{ url_for('static', filename='img/DOC LOGO.png') }}"
+                class="doc-logo theme-logo-dark"
+                alt="Docathon Logo"
+            >
+            <img
+                src="{{ url_for('static', filename='img/doc-logo-light.png') }}"
+                class="doc-logo theme-logo-light"
+                alt="Docathon Logo"
+            >
+
+            <div>
+                <div class="doc-brand-name">
+                    Department of Commerce
                 </div>
-            </a>
-            {% endfor %}
-        {% else %}
-            <p>No matches scheduled for today.</p>
-        {% endif %}
+
+                <div class="doc-brand-sub">
+                    Christ University • Docathon
+                </div>
+            </div>
+
+        </div>
+
+
     </div>
 
-    <div class="col-md-5">
-        <h2 class="pb-2 border-bottom">Top Classes</h2>
-        {% if top_teams %}
-            <ol class="list-group list-group-numbered">
-                {% for team in top_teams %}
-                <li class="list-group-item d-flex justify-content-between align-items-start bg-dark text-white border-secondary">
-                    <div class="ms-2 me-auto">
-                        <div class="fw-bold">{{ team.class_name }}</div>
+
+    <!-- HERO -->
+    <section class="doc-hero">
+
+        <div class="doc-eyebrow">
+            ✦ THE OFFICIAL DOCATHON HUB
+        </div>
+
+        <h1>
+            Welcome to <span>Docathon.</span>
+        </h1>
+
+        <p>
+            Your central hub for live matches, class standings,
+            schedules and everything happening across Docathon.
+        </p>
+
+        <div class="doc-actions">
+
+            <a
+                href="{{ url_for('leaderboard') }}"
+                class="doc-btn doc-btn-gold"
+            >
+                View Leaderboard →
+            </a>
+
+            <a
+                href="{{ url_for('matches') }}"
+                class="doc-btn doc-btn-outline"
+            >
+                Explore Matches
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- STATS -->
+    <section class="doc-stats">
+
+        <div class="doc-stat">
+            <div class="doc-stat-number">LIVE</div>
+            <div class="doc-stat-label">
+                Competition Updates
+            </div>
+        </div>
+
+        <div class="doc-stat">
+            <div class="doc-stat-number">24/7</div>
+            <div class="doc-stat-label">
+                Event Hub
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- MAIN CONTENT -->
+    <div class="doc-content">
+
+        <!-- TODAY'S MATCHES -->
+        <section>
+
+            <div class="doc-section-title">
+
+                <h2>Today's Matches</h2>
+
+                <a href="{{ url_for('matches') }}">
+                    See all →
+                </a>
+
+            </div>
+
+            {% if todays_matches %}
+
+                {% for match in todays_matches %}
+
+                <a
+                    href="{{ url_for('match_details', match_id=match.id) }}"
+                    class="doc-match-card"
+                >
+
+                    <div class="doc-match-top">
+
+                        <span class="doc-sport">
+                            {{ match.sport_name }}
+                        </span>
+
+                        <span class="doc-status">
+
+                            {% if match.status == 'LIVE' %}
+                                ● LIVE
+
+                            {% elif match.status == 'COMPLETED' %}
+                                FINISHED
+
+                            {% else %}
+                                UPCOMING
+                            {% endif %}
+
+                        </span>
+
                     </div>
-                    <span class="badge bg-warning rounded-pill fs-6">{{ team.total_points }} pts</span>
-                </li>
+
+                    <div class="doc-match-title">
+
+                        {{ match.class1_name }}
+
+                        <span style="opacity:.35;">
+                            vs
+                        </span>
+
+                        {{ match.class2_name }}
+
+                    </div>
+
+                    {% if match.status == 'COMPLETED' or match.status == 'LIVE' %}
+
+                        <div class="doc-match-info">
+                            {{ match.result_details }}
+                        </div>
+
+                    {% else %}
+
+                        <div class="doc-match-info">
+                            Scheduled for
+                            {{ match.match_time.split('T')[1] }}
+                        </div>
+
+                    {% endif %}
+
+                </a>
+
                 {% endfor %}
-            </ol>
-        {% else %}
-            <p>Leaderboard is not yet available.</p>
-        {% endif %}
+
+            {% else %}
+
+                <div class="doc-empty">
+
+                    <div style="font-size:30px;">
+                        🏆
+                    </div>
+
+                    <strong>
+                        No matches scheduled for today.
+                    </strong>
+
+                    <div style="font-size:12px;margin-top:5px;">
+                        Check back soon for upcoming action.
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+
+        <!-- TOP CLASSES -->
+        <section>
+
+            <div class="doc-section-title">
+
+                <h2>Top Classes</h2>
+
+                <a href="{{ url_for('leaderboard') }}">
+                    Full rankings →
+                </a>
+
+            </div>
+
+            {% if top_teams %}
+
+                {% for team in top_teams %}
+
+                <div class="doc-class-card">
+
+                    <div class="doc-rank">
+                        {{ loop.index }}
+                    </div>
+
+                    <div class="doc-class-name">
+                        {{ team.class_name }}
+                    </div>
+
+                    <div class="doc-points">
+                        {{ team.total_points }} pts
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="doc-empty">
+
+                    <div style="font-size:30px;">
+                        🏅
+                    </div>
+
+                    <strong>
+                        Leaderboard is not yet available.
+                    </strong>
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
     </div>
+
 </div>
+
+
 {% endblock %}

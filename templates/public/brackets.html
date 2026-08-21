@@ -2,67 +2,158 @@
 
 {% block content %}
 <style>
+    :root {
+        --line-color: rgba(212, 175, 55, .45);
+        --bracket-gap: 60px;
+    }
+
     .bracket-container {
         display: flex;
         overflow-x: auto;
         padding-bottom: 20px;
     }
+
     .round {
         display: flex;
         flex-direction: column;
-        justify-content: space-around;
+        justify-content: center;
         flex-shrink: 0;
         width: 250px;
-        margin-right: 50px;
+        margin-right: var(--bracket-gap);
     }
+
+    .round h4 {
+        margin-bottom: 24px;
+    }
+
+    /* A pair is the vertical territory of two matches feeding one match in
+       the next round. It draws the joiner that bridges between them, sized
+       to its own height so it always spans exactly from the top match's
+       midpoint to the bottom match's midpoint. */
+    .pair {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        flex: 1 0 0;
+    }
+
+    /* The two match-slots split the pair's height evenly (flex + space
+       around), so their midpoints sit at 25% and 75% of the pair's box.
+       The joiner spans exactly between those two points. */
+    .round:not(.round-final) .pair.has-partner::after {
+        content: "";
+        position: absolute;
+        top: 25%;
+        bottom: 25%;
+        right: calc(-1 * var(--bracket-gap) / 2);
+        width: 2px;
+        background: var(--line-color);
+    }
+
+    .match-slot {
+        position: relative;
+        padding: 12px 0;
+    }
+
     .match {
         position: relative;
-        background-color: #343a40; /* Bootstrap dark gray */
-        border: 1px solid #6c757d; /* Bootstrap secondary */
+        box-sizing: border-box;
+        background-color: var(--dark-card);
+        border: 1px solid var(--dark-border);
         border-radius: .25rem;
-        padding: 10px;
-        margin: 10px 0;
+        padding: 8px 10px;
     }
+
     .team {
         display: flex;
         justify-content: space-between;
+        color: var(--text);
     }
+
     .team.winner {
         font-weight: bold;
-        color: #ffc107; /* Bootstrap warning/gold */
+        color: var(--gold);
     }
-    .connector {
+
+    .match hr {
+        border-color: var(--dark-border);
+        opacity: 1;
+    }
+
+    /* Right-hand stub: every match except in the final round reaches out to
+       the gap midline, where a paired joiner (if any) picks it up. */
+    .round:not(.round-final) .match-slot::after {
+        content: "";
         position: absolute;
         top: 50%;
-        right: -30px;
-        width: 30px;
+        left: 100%;
+        width: calc(var(--bracket-gap) / 2);
         height: 2px;
-        background-color: #6c757d;
+        background: var(--line-color);
+    }
+
+    /* Left-hand stub: every match except in the first round is fed by a
+       line arriving from the gap midline on its left. */
+    .round:not(:first-child) .match-slot::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 100%;
+        width: calc(var(--bracket-gap) / 2);
+        height: 2px;
+        background: var(--line-color);
+    }
+
+    .bracket-nav {
+        text-align: center;
+        margin-bottom: 45px;
+    }
+
+    .bracket-nav .outline-button {
+        margin-bottom: 18px;
+    }
+
+    .bracket-title {
+        margin: 0;
+        font-size: clamp(1.75rem, 1.2rem + 2.5vw, 2.75rem);
+        font-weight: 900;
     }
 </style>
 
-<div class="text-center mb-5">
-    <a href="{{ url_for('list_brackets') }}">&larr; Back to All Brackets</a>
-    <h1 class="display-4 fw-bold docathon-brand">{{ sport_name }} Bracket</h1>
+<div class="bracket-nav">
+    <a href="{{ url_for('list_brackets') }}" class="outline-button">
+        <span aria-hidden="true">&larr;</span>&nbsp; All brackets
+    </a>
+    <h1 class="bracket-title">{{ sport_name }} <span class="gold">Bracket</span></h1>
 </div>
 
 <div class="bracket-container">
     {% for round_name, matches_in_round in rounds.items() %}
-    <div class="round">
-        <h4 class="text-center">{{ round_name }}</h4>
+    <div class="round{% if loop.last %} round-final{% endif %}">
+        <h4 class="text-center">{{ round_name.replace('[MOCK-DOCATHON] ', '') }}</h4>
+
         {% for match in matches_in_round %}
-            <div class="match">
-                <div class="team {% if match.winner_name == match.class1_name %}winner{% endif %}">
-                    <span>{{ match.class1_name }}</span>
+            {% if loop.index % 2 == 1 %}
+                {% set is_paired = not loop.last or matches_in_round|length is even %}
+                <div class="pair{% if is_paired %} has-partner{% endif %}">
+            {% endif %}
+
+                    <div class="match-slot">
+                        <div class="match">
+                            <div class="team {% if match.winner_name == match.class1_name %}winner{% endif %}">
+                                <span>{{ match.class1_name }}</span>
+                            </div>
+                            <hr class="my-1">
+                            <div class="team {% if match.winner_name == match.class2_name %}winner{% endif %}">
+                                <span>{{ match.class2_name }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+            {% if loop.index % 2 == 0 or loop.last %}
                 </div>
-                <hr class="my-1 border-secondary">
-                <div class="team {% if match.winner_name == match.class2_name %}winner{% endif %}">
-                    <span>{{ match.class2_name }}</span>
-                </div>
-                {% if loop.index % 2 == 1 %}
-                <div class="connector"></div>
-                {% endif %}
-            </div>
+            {% endif %}
         {% endfor %}
     </div>
     {% endfor %}

@@ -1,69 +1,832 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% if page_title %}{{ page_title }} | {% endif %}DOCathon</title>
+    <title>{% block title %}Docathon{% endblock %}</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        :root {
+            --gold: #c9962c;
+            --gold-light: #e6b84f;
+            --gold-deep: #9c7a1f;
+            --black: #090909;
+            --dark: #111315;
+            --dark-card: #17191b;
+            --dark-border: rgba(212,175,55,.22);
+            --text: #f5f5f5;
+            --muted: #a7a7a7;
+        }
+
+        [data-theme="light"] {
+            --black: #f7f5ef;
+            --dark: #ffffff;
+            --dark-card: #ffffff;
+            --dark-border: rgba(125,91,8,.20);
+            --text: #171717;
+            --muted: #666666;
+            --gold: #9c7a1f;
+            --gold-light: #b8922a;
+            --gold-deep: #7a5f18;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Route Bootstrap's stock yellow "warning" palette to our gold, everywhere. */
+        .btn-warning,
+        .bg-warning {
+            background-color: var(--gold) !important;
+            border-color: var(--gold) !important;
+            color: #090909 !important;
+        }
+
+        .btn-warning:hover,
+        .btn-warning:focus {
+            background-color: var(--gold-light) !important;
+            border-color: var(--gold-light) !important;
+            color: #090909 !important;
+        }
+
+        .btn-outline-warning {
+            color: var(--gold) !important;
+            border-color: var(--gold) !important;
+        }
+
+        .btn-outline-warning:hover,
+        .btn-outline-warning:focus,
+        .btn-outline-warning.active {
+            background-color: var(--gold) !important;
+            border-color: var(--gold) !important;
+            color: #090909 !important;
+        }
+
+        .text-warning {
+            color: var(--gold-light) !important;
+        }
+
+        .alert-warning {
+            background-color: rgba(201,150,44,.14) !important;
+            border-color: var(--dark-border) !important;
+            color: var(--text) !important;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(circle at 80% 0%, rgba(212,175,55,.08), transparent 30%),
+                var(--black);
+            color: var(--text);
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            transition: background-color .35s ease, color .35s ease !important;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .site-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(9,9,9,.88);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        [data-theme="light"] .site-navbar {
+            background: rgba(255,255,255,.90);
+        }
+
+        .nav-inner {
+            min-height: 78px;
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .brand-area {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-shrink: 0;
+        }
+
+        .doc-logo {
+            width: 54px;
+            height: 54px;
+            object-fit: contain;
+        }
+
+        .sponsor {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            line-height: 1;
+        }
+
+        .sponsor-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+
+        .sponsor-name {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 0;
+            color: var(--text);
+        }
+
+        .gold-line {
+            width: 3px;
+            height: 34px;
+            background: var(--gold);
+            border-radius: 10px;
+        }
+
+        .nav-links {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-link-custom {
+            color: var(--muted) !important;
+            text-decoration: none;
+            padding: 9px 11px;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: color .25s ease, background-color .25s ease, transform .25s ease;
+        }
+
+        .nav-link-custom:hover {
+            color: var(--gold-light) !important;
+            background: rgba(212,175,55,.08);
+            transform: translateY(-1px);
+        }
+
+        .theme-toggle {
+            border: 1px solid var(--dark-border);
+            background: transparent;
+            color: var(--text);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: color .25s ease, border-color .25s ease, transform .25s ease;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            transform: rotate(12deg);
+        }
+
+        .mobile-toggle {
+            border: 1px solid var(--dark-border);
+            color: var(--text);
+            padding: 8px 10px;
+        }
+
+        main {
+            min-height: calc(100vh - 170px);
+        }
+
+        .page-content {
+            width: min(100% - 32px, 1250px);
+            margin-inline: auto;
+            padding: 42px 0 12px;
+            min-width: 0;
+        }
+
+        .page-wrap {
+            max-width: 1250px;
+            margin: 0 auto;
+            padding: 50px 24px 20px;
+        }
+
+        .reveal {
+            animation: reveal-in .6s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        .reveal-stagger > * {
+            animation: reveal-in .6s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        .reveal-stagger > *:nth-child(2) { animation-delay: .06s; }
+        .reveal-stagger > *:nth-child(3) { animation-delay: .12s; }
+        .reveal-stagger > *:nth-child(4) { animation-delay: .18s; }
+        .reveal-stagger > *:nth-child(5) { animation-delay: .24s; }
+
+        @keyframes reveal-in {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-up {
+            animation: reveal-in .6s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        .gold {
+            color: var(--gold);
+        }
+
+        .section-title {
+            font-size: clamp(1.5rem, 1.05rem + 2vw, 2.375rem);
+            font-weight: 800;
+            letter-spacing: 0;
+            margin-bottom: 22px;
+            text-wrap: balance;
+        }
+
+        .data-table-wrap,
+        .admin-table-wrap {
+            width: 100%;
+            margin-inline: auto;
+            overflow-x: auto;
+            overscroll-behavior-inline: contain;
+            border: 1px solid var(--dark-border);
+            border-radius: 14px;
+        }
+
+        .data-table-wrap {
+            max-width: 960px;
+        }
+
+        .admin-table-wrap {
+            max-width: 1120px;
+        }
+
+        .data-table-wrap table,
+        .admin-table-wrap table {
+            margin-bottom: 0;
+            min-width: 680px;
+        }
+
+        .data-table-wrap th,
+        .data-table-wrap td,
+        .admin-table-wrap th,
+        .admin-table-wrap td {
+            white-space: nowrap;
+        }
+
+        .admin-table-wrap td:nth-child(2) {
+            white-space: normal;
+            min-width: 180px;
+        }
+
+        .modal-dialog {
+            width: min(calc(100% - 32px), 720px);
+            max-width: none;
+            margin: 16px auto;
+        }
+
+        .modal-content {
+            max-height: calc(100dvh - 32px);
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        .section-title::after {
+            content: "";
+            display: block;
+            width: 45px;
+            height: 3px;
+            background: var(--gold);
+            margin-top: 9px;
+            border-radius: 20px;
+        }
+
+        .modern-card {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 18px;
+            transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+        }
+
+        .modern-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(212,175,55,.55);
+            box-shadow: 0 16px 35px rgba(0,0,0,.20);
+        }
+
+        .gold-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 21px;
+            border-radius: 11px;
+            background: var(--gold);
+            color: #090909 !important;
+            font-weight: 800;
+            text-decoration: none;
+            border: 1px solid var(--gold);
+            transition: background-color .25s ease, border-color .25s ease, color .25s ease, transform .25s ease, box-shadow .25s ease;
+        }
+
+        .gold-button:hover {
+            background: var(--gold-light);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(212,175,55,.18);
+        }
+
+        .outline-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 21px;
+            border-radius: 11px;
+            border: 1px solid var(--dark-border);
+            color: var(--text) !important;
+            text-decoration: none;
+            font-weight: 700;
+            transition: background-color .25s ease, border-color .25s ease, color .25s ease, transform .25s ease, box-shadow .25s ease;
+        }
+
+        .outline-button:hover {
+            border-color: var(--gold);
+            color: var(--gold) !important;
+            transform: translateY(-2px);
+        }
+
+        footer {
+            max-width: 1250px;
+            margin: 55px auto 0;
+            padding: 28px 24px 35px;
+            border-top: 1px solid var(--dark-border);
+        }
+
+        .footer-logos {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .footer-logos img {
+            height: 38px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .theme-logo-light {
+            display: none;
+        }
+
+        .footer-logos .theme-logo-light {
+            width: auto;
+            height: 38px;
+            object-fit: contain;
+        }
+
+        html[data-theme="light"] .theme-logo-dark {
+            display: none;
+        }
+
+        html[data-theme="light"] .theme-logo-light {
+            display: block;
+        }
+
+        .footer-center {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .footer-credit {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .footer-credit-label {
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: .02em;
+        }
+
+        .footer-credit img {
+            height: 38px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .alert {
+            border-radius: 12px;
+        }
+
+        @media (max-width: 991px) {
+            .nav-inner {
+                padding: 12px 0;
+            }
+
+            .nav-links {
+                margin-left: 0;
+            }
+
+            .sponsor-name {
+                font-size: 22px;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .nav-inner {
+                flex-wrap: wrap;
+            }
+
+            .nav-links.show {
+                display: flex !important;
+                flex-basis: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 8px 0 4px;
+            }
+
+            .brand-area {
+                gap: 10px;
+            }
+
+            .doc-logo {
+                width: 45px;
+                height: 45px;
+            }
+
+            .gold-line {
+                display: none;
+            }
+
+            .sponsor-label {
+                font-size: 7px;
+            }
+
+            .sponsor-name {
+                font-size: 20px;
+            }
+
+            .page-wrap {
+                padding: 35px 16px 10px;
+            }
+
+            .page-content {
+                width: min(100% - 24px, 1250px);
+                padding-top: 28px;
+            }
+
+            .data-table-wrap,
+            .admin-table-wrap {
+                border-radius: 10px;
+            }
+
+            .modal-dialog {
+                width: min(calc(100% - 20px), 720px);
+                margin: 10px auto;
+            }
+
+            .modal-content {
+                max-height: calc(100dvh - 20px);
+            }
+        }
+
+        @media (max-width: 575px) {
+            .page-content {
+                width: min(100% - 20px, 1250px);
+                padding-top: 22px;
+            }
+
+            .data-table-wrap table {
+                min-width: 610px;
+            }
+
+            /* Admin toolbars: title and primary action stack instead of
+               squeezing onto one row. */
+            .admin-toolbar {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: 12px;
+            }
+
+            .admin-toolbar .btn,
+            .admin-toolbar .gold-button,
+            .admin-toolbar .outline-button {
+                width: 100%;
+            }
+
+            .live-score-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .live-score-actions form,
+            .live-score-actions .btn {
+                width: 100%;
+            }
+
+            /* Admin data tables: drop the grid entirely and lay each row out
+               as its own card, with the column name inline as a label. This
+               replaces the sideways-scrolling table that made the mobile
+               admin views feel cramped. */
+            .admin-table-wrap {
+                border: none;
+                border-radius: 0;
+                overflow: visible;
+            }
+
+            .admin-table-wrap table,
+            .admin-table-wrap thead,
+            .admin-table-wrap tbody,
+            .admin-table-wrap tr,
+            .admin-table-wrap td {
+                display: block;
+                width: 100%;
+                min-width: 0;
+            }
+
+            .admin-table-wrap thead {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                overflow: hidden;
+                clip: rect(0 0 0 0);
+                white-space: nowrap;
+            }
+
+            .admin-table-wrap tr {
+                background: var(--dark-card);
+                border: 1px solid var(--dark-border);
+                border-radius: 14px;
+                padding: 14px 16px;
+                margin-bottom: 14px;
+            }
+
+            .admin-table-wrap tr:last-child {
+                margin-bottom: 0;
+            }
+
+            .admin-table-wrap td {
+                white-space: normal;
+                padding: 8px 0;
+                border: none;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .admin-table-wrap td:not(:last-child) {
+                border-bottom: 1px solid var(--dark-border);
+            }
+
+            .admin-table-wrap td::before {
+                content: attr(data-label);
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+                color: var(--muted);
+            }
+
+            .admin-table-wrap td[data-label]:empty::before {
+                content: none;
+            }
+
+            /* Admin list rows (team members, stories): stack the label and
+               its edit action instead of squeezing them onto one line. */
+            .admin-list-group .list-group-item {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: 10px;
+            }
+
+            .admin-list-group .list-group-item .btn {
+                align-self: flex-start;
+            }
+        }
+
+        html[data-theme="dark"] {
+            color-scheme: dark;
+        }
+
+        html[data-theme="light"] {
+            color-scheme: light;
+        }
+
+        html[data-theme="light"] .bg-dark,
+        html[data-theme="light"] .card,
+        html[data-theme="light"] .list-group-item,
+        html[data-theme="light"] .table-dark,
+        html[data-theme="light"] .table-dark > :not(caption) > *,
+        html[data-theme="light"] .table-dark th,
+        html[data-theme="light"] .table-dark td {
+            background-color: var(--dark-card) !important;
+            color: var(--text) !important;
+            border-color: var(--dark-border) !important;
+        }
+
+        html[data-theme="light"] .text-white,
+        html[data-theme="light"] .btn-outline-light {
+            color: var(--text) !important;
+        }
+
+        html[data-theme="light"] .btn-outline-light {
+            border-color: var(--dark-border) !important;
+        }
+
+        html[data-theme="dark"] .table-dark > :not(caption) > * {
+            --bs-table-bg: #151515;
+            --bs-table-color: #f5f5f5;
+        }
+
+        .visually-hidden-focusable:focus {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 2000;
+            padding: 10px 14px;
+            background: var(--dark-card);
+            color: var(--text);
+            border: 2px solid var(--gold);
+            border-radius: 8px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition: none !important;
+                scroll-behavior: auto !important;
+            }
+
+            *,
+            *::before,
+            *::after {
+                transform: none !important;
+            }
+        }
+    </style> 
 </head>
+
+
+<a class="visually-hidden-focusable" href="#main-content">Skip to main content</a>
 <body>
-    {% if announcement %}
+
+{% if announcement %}
     <div class="alert alert-warning text-center mb-0" role="alert">
         <strong>Announcement:</strong> {{ announcement }}
     </div>
-    {% endif %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-body">
-        <div class="container-fluid">
-            <a class="navbar-brand docathon-brand" href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Docathon Logo" height="70" class = 'navbar-logo'></a>
-            <a class="navbar-brand docathon-brand ms-3" href="https://wrogn.com/" target="_blank">Sponsored by  <img src="{{ url_for('static', filename='img/wrogn.png') }}" alt="Wrogn Logo" height="70"></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse ms-auto" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('leaderboard') }}">Leaderboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('matches') }}">Matches</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_brackets') }}">Brackets</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_stories') }}">Trending Stories</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About Us</a></li>
-                    {% if session.get('role') == 'admin' %}
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}">Admin Panel</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_logout') }}">Logout</a></li>
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_login') }}">Admin Login</a></li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
+{% endif %}
 
-    <main class="container mt-4">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
+<nav class="site-navbar">
+    <div class="container-fluid px-3 px-lg-4">
+        <div class="nav-inner">
+
+            <a href="{{ url_for('home') }}" class="brand-area text-decoration-none">
+                <img
+                    src="{{ url_for('static', filename='img/DOC LOGO.png') }}"
+                    class="doc-logo theme-logo-dark"
+                    alt="Docathon">
+                <img
+                    src="{{ url_for('static', filename='img/doc-logo-light.png') }}"
+                    class="doc-logo theme-logo-light"
+                    alt="Docathon">
+
+                <div class="gold-line"></div>
+            </a>
+
+            <button class="navbar-toggler mobile-toggle d-lg-none"
+                    type="button"
+                    aria-controls="navbarNav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation">
+                ☰
+            </button>
+
+            <div class="collapse d-lg-flex nav-links" id="navbarNav">
+                <a class="nav-link-custom" href="{{ url_for('home') }}">Home</a>
+                <a class="nav-link-custom" href="{{ url_for('leaderboard') }}">Leaderboard</a>
+                <a class="nav-link-custom" href="{{ url_for('matches') }}">Matches</a>
+                <a class="nav-link-custom" href="{{ url_for('list_brackets') }}">Brackets</a>
+                <a class="nav-link-custom" href="{{ url_for('list_stories') }}">Trending Stories</a>
+                <a class="nav-link-custom" href="{{ url_for('about') }}">About Us</a>   
+                <a class="nav-link-custom" href="{{ url_for('gallery') }}">Gallery</a>
+
+                {% if session.get('role') == 'admin' %}
+                    <a class="nav-link-custom" href="{{ url_for('admin_dashboard') }}">Admin Panel</a>
+                    <a class="nav-link-custom" href="{{ url_for('admin_logout') }}">Logout</a>
+                {% else %}
+                    <a class="nav-link-custom" href="{{ url_for('admin_login') }}">Admin Login</a>
+                {% endif %}
+
+                <button class="theme-toggle" id="themeToggle" type="button" title="Switch theme" aria-label="Switch to light theme" aria-pressed="false">☾</button>
+            </div>
+
+        </div>
+    </div>
+</nav>
+
+<main id="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container pt-3">
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        {% block content %}{% endblock %}
-    </main>
+            </div>
+        {% endif %}
+    {% endwith %}
 
-    <footer class="container text-center py-4 mt-5">
-    <div class="d-flex justify-content-between align-items-center">
-        <img src="{{ url_for('static', filename='img/DOC LOGO.png') }}" alt="Left Logo" style="height: 40px;">
+    <div class="page-content reveal">
+    {% if session.get('role') == 'admin' and request.path.startswith('/admin/') and request.endpoint not in ('admin_dashboard', 'admin_login') %}
+        <div class="container pt-3 pb-3">
+            <a class="outline-button" href="{{ url_for('admin_dashboard') }}">&larr; Back to Admin Panel</a>
+        </div>
+    {% endif %}
 
-        <p class="text-muted mb-0">&copy; 2025 Docathon. All rights reserved.</p>
-        
-        <img src="{{ url_for('static', filename='img/Christ logo.png') }}" alt="Right Logo" style="height: 40px;">
+    {% block content %}{% endblock %}
+    </div>
+</main>
+
+<footer>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-4">
+
+        <div class="footer-logos">
+            <img class="theme-logo-dark" src="{{ url_for('static', filename='img/DOC LOGO.png') }}" alt="Department of Commerce">
+            <img class="theme-logo-light" src="{{ url_for('static', filename='img/doc-logo-light.png') }}" alt="Department of Commerce">
+            <img class="theme-logo-dark" src="{{ url_for('static', filename='img/Christ logo.png') }}" alt="Christ University">
+            <img class="theme-logo-light" src="{{ url_for('static', filename='img/christ-logo-light.png') }}" alt="Christ University">
+        </div>
+
+        <div class="footer-center">
+            © 2025 Docathon. All rights reserved.
+        </div>
+
+        <div class="footer-credit">
+            <span class="footer-credit-label">Built by</span>
+            <img class="theme-logo-dark" src="{{ url_for('static', filename='img/docanalytica-icon-dark.png') }}" alt="DOC Analytica">
+            <img class="theme-logo-light" src="{{ url_for('static', filename='img/docanalytica-icon-light.png') }}" alt="DOC Analytica">
+        </div>
+
     </div>
 </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const root = document.documentElement;
+    const toggle = document.getElementById("themeToggle");
+    const savedTheme = localStorage.getItem("docathon-theme") || "dark";
+
+    function setTheme(theme) {
+        const isLight = theme === "light";
+        root.setAttribute("data-theme", isLight ? "light" : "dark");
+        root.setAttribute("data-bs-theme", isLight ? "light" : "dark");
+        localStorage.setItem("docathon-theme", isLight ? "light" : "dark");
+        toggle.textContent = isLight ? "☾" : "☀";
+        toggle.setAttribute("aria-label", isLight ? "Switch to dark theme" : "Switch to light theme");
+        toggle.setAttribute("aria-pressed", String(isLight));
+    }
+
+    setTheme(savedTheme);
+    toggle.addEventListener("click", function () {
+        setTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark");
+    });
+
+    const navToggle = document.querySelector(".mobile-toggle");
+    const navLinks = document.getElementById("navbarNav");
+
+    navToggle.addEventListener("click", function () {
+        const expanded = navLinks.classList.toggle("show");
+        navToggle.setAttribute("aria-expanded", String(expanded));
+    });
+</script>
+
 </body>
 </html>
+
